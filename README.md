@@ -1,2 +1,2 @@
-# strength-log
+# strength-logging
 Workout progress tracker
