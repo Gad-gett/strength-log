@@ -1294,6 +1294,19 @@ if (!workouts.length) {
 }
 renderAll();
 
+// Expose functions needed by HTML onclick to global scope
+window.toggleImport      = toggleImport;
+window.parseAndAdd       = parseAndAdd;
+window.syncFromFile      = syncFromFile;
+window.handleFileLoad    = handleFileLoad;
+window.setTf             = setTf;
+window.switchTab         = switchTab;
+window.toggleChartType   = toggleChartType;
+window.renderExPanel     = renderExPanel;
+window.showOverlay       = showOverlay;
+window.dismissOverlay    = dismissOverlay;
+window.triggerFileLoad   = triggerFileLoad;
+
 // Auto-show sync prompt if opened from Shortcut (?sync=1)
 if (new URLSearchParams(window.location.search).get('sync') === '1') {
   showOverlay();
