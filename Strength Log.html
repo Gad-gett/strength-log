@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///C:/Users/ander/Downloads/workout-dashboard.html -->
+<!-- saved from url=(0057)file:///C:/Users/ander/Downloads/workout-dashboard_2.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -431,6 +431,89 @@ select {
   border-color: var(--blue);
   color: var(--cyan);
 }
+/* AUTO-PROMPT OVERLAY */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3,7,15,0.92);
+  z-index: 999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  backdrop-filter: blur(12px);
+  animation: fadeIn 0.2s ease;
+}
+.overlay.hidden { display: none; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+.prompt-sheet {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+  padding: 24px 20px 40px;
+  width: 100%;
+  max-width: 480px;
+  position: relative;
+}
+.prompt-sheet::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #00d4ff40, transparent);
+  border-radius: 16px 16px 0 0;
+}
+.prompt-handle {
+  width: 36px; height: 4px;
+  background: var(--border2);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+.prompt-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem;
+  letter-spacing: 2px;
+  color: var(--cyan);
+  margin-bottom: 6px;
+}
+.prompt-sub {
+  font-size: 0.58rem;
+  color: var(--muted2);
+  letter-spacing: 1px;
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+.prompt-sub strong { color: var(--text); }
+.prompt-btns { display: flex; flex-direction: column; gap: 8px; }
+.prompt-btn-primary {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(90deg, #0a2a60, #0a3878);
+  border: 1px solid var(--blue);
+  border-radius: 10px;
+  color: var(--cyan);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.prompt-btn-primary:active { background: linear-gradient(90deg, #0d3878, #1050a0); }
+.prompt-btn-skip {
+  width: 100%;
+  padding: 11px;
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  color: var(--muted2);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
 /* SYNC BUTTON */
 .sync-wrap {
   margin: 10px 14px 0;
@@ -478,6 +561,21 @@ select {
 </head>
 <body>
 
+<div class="overlay hidden" id="syncOverlay">
+  <div class="prompt-sheet">
+    <div class="prompt-handle"></div>
+    <div class="prompt-title">New Workout?</div>
+    <div class="prompt-sub">
+      Load your latest workout from iCloud Drive.<br>
+      Navigate to <strong>Strength Log → latest-workout.txt</strong>
+    </div>
+    <div class="prompt-btns">
+      <button class="prompt-btn-primary" onclick="triggerFileLoad()">Load latest-workout.txt</button>
+      <button class="prompt-btn-skip" onclick="dismissOverlay()">Skip — just show my dashboard</button>
+    </div>
+  </div>
+</div>
+
 <header>
   <div class="logo">
     <h1>Strength</h1>
@@ -490,12 +588,12 @@ select {
 </header>
 
 <div class="import-wrap">
-  <div class="import-top" id="importToggle" onclick="toggleImport()">
+  <div class="import-top open" id="importToggle" onclick="toggleImport()">
     <div class="dot"></div>
     <span>Paste Workout Export</span>
     <span class="chevron">▾</span>
   </div>
-  <div class="import-body" id="importBody">
+  <div class="import-body open" id="importBody">
     <textarea id="importText" placeholder="2026-04-24 08:25 - 09:07
 Träningstid: 00h 42m
 Chins: 5 x 82, 6 x 82 +15
@@ -515,7 +613,7 @@ Bänkpress: 8 x 80, 8 x 80
   </button>
   <div class="sync-status" id="syncStatus">Not synced</div>
 </div>
-<input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleFileLoad(event)">
+<input type="file" id="fileInput" accept=".json,.txt" style="display:none" onchange="handleFileLoad(event)">
 
 <div id="errorArea"></div>
 
@@ -711,6 +809,18 @@ function toggleImport() {
   document.getElementById('importToggle').classList.toggle('open');
 }
 
+// ── OVERLAY ─────────────────────────────────────────────────────────────────
+function showOverlay() {
+  document.getElementById('syncOverlay').classList.remove('hidden');
+}
+function dismissOverlay() {
+  document.getElementById('syncOverlay').classList.add('hidden');
+}
+function triggerFileLoad() {
+  dismissOverlay();
+  document.getElementById('fileInput').click();
+}
+
 // ── SYNC FROM FILE ──────────────────────────────────────────────────────────
 function syncFromFile() {
   document.getElementById('fileInput').click();
@@ -722,21 +832,32 @@ function handleFileLoad(event) {
   const reader = new FileReader();
   reader.onload = e => {
     try {
-      const data = JSON.parse(e.target.result);
-      // Accept either array of workouts or { workouts: [...] }
-      const incoming = Array.isArray(data) ? data : (data.workouts || []);
+      const text = e.target.result;
+      let incoming = [];
+
+      // Detect format: JSON or plain text export
+      if (text.trim().startsWith('{') || text.trim().startsWith('[')) {
+        const data = JSON.parse(text);
+        const arr = Array.isArray(data) ? data : (data.workouts || []);
+        incoming = arr.map(w => normaliseHealthWorkout(w)).filter(Boolean);
+      } else {
+        // Plain text export from Strength Log — split into blocks and parse
+        const blocks = text.split(/\n(?=\d{4}-\d{2}-\d{2})/).filter(b => b.trim());
+        for (const b of blocks) {
+          const w = parseWorkout(b);
+          if (w) incoming.push(w);
+        }
+      }
+
       if (!incoming.length) throw new Error('No workouts found in file');
 
       let added = 0;
       for (const w of incoming) {
-        // Normalise — Shortcut sends Health data in a structured format
-        const normalised = normaliseHealthWorkout(w);
-        if (!normalised) continue;
         const dup = workouts.find(x =>
-          x.date === normalised.date &&
-          x.exercises[0]?.name === normalised.exercises[0]?.name
+          x.date === w.date &&
+          x.exercises[0]?.name === w.exercises[0]?.name
         );
-        if (!dup) { workouts.push(normalised); added++; }
+        if (!dup) { workouts.push(w); added++; }
       }
       workouts.sort((a,b) => a.date.localeCompare(b.date));
       save();
@@ -1149,12 +1270,18 @@ function switchTab(name) {
   if (name==='exercise') renderExPanel();
 }
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
+// ── INIT ─────────────────────────────────────────────────────────────────────
+// Show sync prompt automatically if opened with ?sync=1 (from Shortcut)─
 if (!workouts.length) {
   document.getElementById('importBody').classList.add('open');
   document.getElementById('importToggle').classList.add('open');
 }
 renderAll();
+
+// Auto-show sync prompt if opened from Shortcut (?sync=1)
+if (new URLSearchParams(window.location.search).get('sync') === '1') {
+  showOverlay();
+}
 </script>
 
 
