@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<!-- saved from url=(0055)file:///C:/Users/ander/Downloads/workout-dashboard.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Strength Log</title>
+<link href="./Strength Log_files/css2" rel="stylesheet">
+<style>
+:root {
+  --bg:       #03070f;
+  --bg2:      #060c18;
+  --surface:  #0a1225;
+  --surface2: #0e192e;
+  --border:   #142038;
+  --border2:  #1c2e4a;
+  --blue:     #1a8cff;
+  --blue-dim: #1a8cff28;
+  --cyan:     #00d4ff;
+  --cyan-dim: #00d4ff18;
+  --gold:     #ffc947;
+  --gold-dim: #ffc94720;
+  --green:    #00e5a0;
+  --text:     #c8ddf8;
+  --muted:    #304560;
+  --muted2:   #506888;
+  --red:      #ff4466;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::after {
+  content: '';
+  position: fixed;
+  top: -40%; left: -20%;
+  width: 70%; height: 80%;
+  background: radial-gradient(ellipse, #0a2a5508 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* HEADER */
+header {
+  padding: 30px 16px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  background: rgba(3,7,15,0.96);
+  z-index: 100;
+  backdrop-filter: blur(16px);
+}
+.logo h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.5rem;
+  letter-spacing: 3px;
+  line-height: 1;
+  background: linear-gradient(120deg, var(--cyan) 0%, var(--blue) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.logo p {
+  font-size: 0.5rem;
+  color: var(--muted2);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+.header-right { text-align: right; padding-bottom: 2px; }
+.header-right .big {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.7rem;
+  color: var(--cyan);
+  letter-spacing: 2px;
+  line-height: 1;
+}
+.header-right .small {
+  font-size: 0.48rem;
+  color: var(--muted2);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* IMPORT */
+.import-wrap {
+  margin: 14px 14px 0;
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.import-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.52rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted2);
+  cursor: pointer;
+  user-select: none;
+}
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 7px var(--cyan);
+  flex-shrink: 0;
+  animation: blink 2.5s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.chevron { margin-left: auto; color: var(--muted); transition: transform 0.2s; font-size: 0.7rem; }
+.import-top.open .chevron { transform: rotate(180deg); }
+.import-body { display: none; }
+.import-body.open { display: block; }
+textarea {
+  width: 100%;
+  background: var(--bg2);
+  border: none;
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.62rem;
+  padding: 12px 14px;
+  resize: vertical;
+  min-height: 95px;
+  outline: none;
+  line-height: 1.8;
+}
+textarea::placeholder { color: var(--muted); }
+.import-footer { display: flex; border-top: 1px solid var(--border); }
+button {
+  padding: 10px 14px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: all 0.15s;
+}
+.btn-add {
+  flex: 1;
+  background: linear-gradient(90deg, #0a2a60, #0a3878);
+  color: var(--cyan);
+  border-right: 1px solid var(--border);
+}
+.btn-add:active { background: linear-gradient(90deg, #0d3878, #1050a0); }
+.btn-clear { background: transparent; color: var(--muted2); width: 68px; }
+.btn-clear:active { color: var(--text); }
+
+/* ERROR */
+.error-msg {
+  margin: 10px 14px 0;
+  background: #1a000a;
+  border: 1px solid var(--red);
+  color: var(--red);
+  font-size: 0.58rem;
+  padding: 9px 12px;
+  border-radius: 8px;
+  line-height: 1.5;
+}
+
+/* STATS */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  margin: 14px 14px 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border2);
+}
+.stat-cell { background: var(--surface); padding: 11px 6px; text-align: center; }
+.stat-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: 1px;
+}
+.c-blue{color:var(--blue)} .c-cyan{color:var(--cyan)} .c-gold{color:var(--gold)} .c-green{color:var(--green)}
+.stat-label { font-size: 0.46rem; color: var(--muted2); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px; }
+
+/* TIMEFRAME */
+.tf-bar { display: flex; margin: 12px 14px 0; gap: 4px; }
+.tf-btn {
+  flex: 1; padding: 7px 4px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  font-size: 0.52rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted2);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.tf-btn.active { background: var(--blue-dim); border-color: var(--blue); color: var(--cyan); }
+
+/* TABS */
+.tabs { display: flex; margin: 12px 14px 0; gap: 4px; }
+.tab {
+  flex: 1; padding: 9px 4px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  font-size: 0.54rem;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--muted2);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.tab.active { background: linear-gradient(135deg,#0a2858,#0c3878); border-color: var(--blue); color: var(--cyan); }
+
+/* PANELS */
+.panel { display: none; padding: 14px 14px 0; }
+.panel.active { display: block; }
+
+/* CARD */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #1a8cff30, transparent);
+}
+.card-title {
+  font-size: 0.52rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted2);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-title strong {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 1.5px;
+  color: var(--text);
+  font-weight: 400;
+}
+canvas { width: 100% !important; height: 160px !important; }
+
+/* PR highlight — single cell, full width */
+.pr-highlight {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 18px 16px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+.pr-highlight::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #00d4ff50, transparent);
+}
+.pr-highlight-lbl {
+  font-size: 0.48rem;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--muted2);
+  margin-bottom: 6px;
+}
+.pr-highlight-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3rem;
+  color: var(--cyan);
+  letter-spacing: 2px;
+  line-height: 1;
+}
+.pr-highlight-unit {
+  font-size: 1.2rem;
+  color: var(--muted2);
+}
+.pr-highlight-date {
+  font-size: 0.48rem;
+  color: var(--muted2);
+  margin-top: 4px;
+  letter-spacing: 1px;
+}
+
+/* EXERCISE SELECT */
+.ex-select-wrap { margin-bottom: 12px; }
+select {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem;
+  padding: 10px 12px;
+  border-radius: 8px;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+/* PR TABLE (inside exercise tab) */
+.pr-table { width: 100%; border-collapse: collapse; font-size: 0.6rem; }
+.pr-table th {
+  text-align: left;
+  font-size: 0.46rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted2);
+  padding: 0 0 10px;
+  font-weight: 400;
+}
+.pr-table th:not(:first-child) { text-align: right; }
+.pr-table td { padding: 7px 0; border-top: 1px solid var(--border); vertical-align: middle; }
+.pr-table td:not(:first-child) { text-align: right; }
+.pr-name { color: var(--text); font-size: 0.6rem; }
+.pr-date-small { font-size: 0.44rem; color: var(--muted2); margin-top: 1px; }
+.pr-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.05rem; letter-spacing: 1px; }
+
+/* HISTORY */
+.workout-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  animation: fadeUp 0.3s ease both;
+}
+@keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+.wk-header {
+  background: var(--surface2);
+  padding: 9px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+.wk-date { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; color: var(--cyan); letter-spacing: 2px; }
+.wk-meta { font-size: 0.5rem; color: var(--muted2); text-align: right; line-height: 1.6; }
+.ex-row {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+.ex-row:last-child { border-bottom: none; }
+.ex-name { font-size: 0.62rem; color: var(--text); flex: 1; line-height: 1.5; }
+.ex-sets-text { font-size: 0.55rem; color: var(--muted2); text-align: right; line-height: 1.7; }
+.badge-pr {
+  display: inline-block;
+  background: var(--gold-dim);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-size: 0.4rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  letter-spacing: 1px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+/* EMPTY */
+.empty { text-align: center; padding: 50px 20px; color: var(--muted2); }
+.empty .icon {
+  width: 32px; height: 32px;
+  margin: 0 auto 12px;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.4;
+}
+.empty p { font-size: 0.6rem; letter-spacing: 0.5px; line-height: 2; }
+
+.spacer { height: 40px; }
+
+/* canvas tall for PR chart */
+.canvas-tall { height: 200px !important; }
+
+/* Chart type toggle */
+.chart-toggle {
+  display: flex;
+  gap: 3px;
+  margin-left: auto;
+}
+.ct-btn {
+  padding: 3px 8px;
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted2);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.48rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  line-height: 1;
+  transition: all 0.12s;
+}
+.ct-btn.active {
+  background: var(--blue-dim);
+  border-color: var(--blue);
+  color: var(--cyan);
+}
+/* SYNC BUTTON */
+.sync-wrap {
+  margin: 10px 14px 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.btn-sync {
+  flex: 1;
+  padding: 10px 14px;
+  background: linear-gradient(90deg, #0a3060, #0a2848);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  color: var(--cyan);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s;
+}
+.btn-sync:active { background: linear-gradient(90deg, #0d3878, #0d3060); }
+.sync-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 6px var(--cyan);
+  flex-shrink: 0;
+}
+.sync-status {
+  font-size: 0.5rem;
+  color: var(--muted2);
+  letter-spacing: 1px;
+  text-align: right;
+  line-height: 1.5;
+  min-width: 80px;
+}
+.sync-status.ok { color: var(--green); }
+.sync-status.err { color: var(--red); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <h1>Strength</h1>
+    <p>Workout Dashboard</p>
+  </div>
+  <div class="header-right">
+    <div class="big" id="hdrHours">0.0h</div>
+    <div class="small">Total Training</div>
+  </div>
+</header>
+
+<div class="import-wrap">
+  <div class="import-top" id="importToggle" onclick="toggleImport()">
+    <div class="dot"></div>
+    <span>Paste Workout Export</span>
+    <span class="chevron">▾</span>
+  </div>
+  <div class="import-body" id="importBody">
+    <textarea id="importText" placeholder="2026-04-24 08:25 - 09:07
+Träningstid: 00h 42m
+Chins: 5 x 82, 6 x 82 +15
+Bänkpress: 8 x 80, 8 x 80
+..."></textarea>
+    <div class="import-footer">
+      <button class="btn-add" onclick="parseAndAdd()">+ Add Workout</button>
+      <button class="btn-clear" onclick="document.getElementById(&#39;importText&#39;).value=&#39;&#39;">Clear</button>
+    </div>
+  </div>
+</div>
+
+<div class="sync-wrap">
+  <button class="btn-sync" onclick="syncFromFile()">
+    <div class="sync-dot"></div>
+    Sync from iCloud Drive
+  </button>
+  <div class="sync-status" id="syncStatus">Not synced</div>
+</div>
+<input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleFileLoad(event)">
+
+<div id="errorArea"></div>
+
+<div class="stats-bar">
+  <div class="stat-cell"><div class="stat-val c-cyan" id="sWorkouts">0</div><div class="stat-label">Workouts</div></div>
+  <div class="stat-cell"><div class="stat-val c-blue" id="sVolume">0</div><div class="stat-label">Total kg</div></div>
+  <div class="stat-cell"><div class="stat-val c-gold" id="sPRs">0</div><div class="stat-label">Exercises</div></div>
+  <div class="stat-cell"><div class="stat-val c-green" id="sHours">0.0</div><div class="stat-label">Hours</div></div>
+</div>
+
+<div class="tf-bar">
+  <div class="tf-btn active" data-tf="all" onclick="setTf(&#39;all&#39;)">All</div>
+  <div class="tf-btn" data-tf="365" onclick="setTf(&#39;365&#39;)">1 Y</div>
+  <div class="tf-btn" data-tf="90" onclick="setTf(&#39;90&#39;)">3 M</div>
+  <div class="tf-btn" data-tf="30" onclick="setTf(&#39;30&#39;)">1 M</div>
+  <div class="tf-btn" data-tf="7" onclick="setTf(&#39;7&#39;)">1 W</div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(&#39;overview&#39;)">Overview</div>
+  <div class="tab" onclick="switchTab(&#39;exercise&#39;)">Exercise</div>
+  <div class="tab" onclick="switchTab(&#39;history&#39;)">History</div>
+</div>
+
+<!-- OVERVIEW -->
+<div class="panel active" id="panel-overview">
+  <div class="card">
+    <div class="card-title">
+      <span>Session Volume</span><strong>Total KG Lifted</strong>
+      <div class="chart-toggle">
+        <button class="ct-btn active" data-toggle="chartVolume" data-type="bar" onclick="toggleChartType(&#39;chartVolume&#39;)">Bar</button>
+        <button class="ct-btn" data-toggle="chartVolume" data-type="line" onclick="toggleChartType(&#39;chartVolume&#39;)">Line</button>
+      </div>
+    </div>
+    <canvas id="chartVolume"></canvas>
+  </div>
+  <div class="card">
+    <div class="card-title">
+      <span>Session Duration</span><strong>Training Hours</strong>
+      <div class="chart-toggle">
+        <button class="ct-btn active" data-toggle="chartHours" data-type="bar" onclick="toggleChartType(&#39;chartHours&#39;)">Bar</button>
+        <button class="ct-btn" data-toggle="chartHours" data-type="line" onclick="toggleChartType(&#39;chartHours&#39;)">Line</button>
+      </div>
+    </div>
+    <canvas id="chartHours"></canvas>
+  </div>
+  <div class="card">
+    <div class="card-title"><span>Cumulative</span><strong>Total Training Hours</strong></div>
+    <canvas id="chartHoursCumulative"></canvas>
+  </div>
+  <div class="spacer"></div>
+</div>
+
+<!-- EXERCISE -->
+<div class="panel" id="panel-exercise">
+  <div class="ex-select-wrap">
+    <select id="exerciseSelect" onchange="renderExPanel()"><option value="">— Select exercise —</option></select>
+  </div>
+  <div id="exCharts"><div class="empty">
+      <div class="icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="7" width="12" height="2" rx="1" fill="currentColor"></rect><rect x="5" y="4" width="2" height="8" rx="1" fill="currentColor"></rect><rect x="9" y="4" width="2" height="8" rx="1" fill="currentColor"></rect></svg></div>
+      <p>Select an exercise<br>to see its progress</p>
+    </div></div>
+  <div class="spacer"></div>
+</div>
+
+<!-- HISTORY -->
+<div class="panel" id="panel-history">
+  <div id="historyList"><div class="empty">
+      <div class="icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="2" width="10" height="12" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"></rect><line x1="5" y1="5.5" x2="11" y2="5.5" stroke="currentColor" stroke-width="1"></line><line x1="5" y1="8" x2="11" y2="8" stroke="currentColor" stroke-width="1"></line><line x1="5" y1="10.5" x2="9" y2="10.5" stroke="currentColor" stroke-width="1"></line></svg></div>
+      <p>No workouts in this timeframe.</p>
+    </div></div>
+  <div class="spacer"></div>
+</div>
+
+<script src="./Strength Log_files/chart.umd.min.js.nedladdning"></script>
+<script>
+let workouts = JSON.parse(localStorage.getItem('sl_v2') || '[]');
+let activeTf = 'all';
+let charts = {};
+// 'bar' or 'line' toggle per chart id
+const chartTypePref = { chartVolume:'bar', chartHours:'bar', exVolChart:'bar' };
+function toggleChartType(id) {
+  chartTypePref[id] = chartTypePref[id] === 'bar' ? 'line' : 'bar';
+  // Sync button states
+  document.querySelectorAll(`[data-toggle="${id}"]`).forEach(b =>
+    b.classList.toggle('active', b.dataset.type === chartTypePref[id])
+  );
+  renderAll();
+}
+
+// ── PARSER ──────────────────────────────────────────────────────────────────
+function parseWorkout(raw) {
+  const lines = raw.trim().split('\n').map(l => l.trim()).filter(Boolean);
+  if (!lines.length) return null;
+  const dateM = lines[0].match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+  if (!dateM) return null;
+  const date = dateM[1];
+
+  let durationMin = 0;
+  const durLine = lines.find(l => /träningstid/i.test(l));
+  if (durLine) {
+    const dm = durLine.match(/(\d+)h\s*(\d+)m/);
+    if (dm) durationMin = parseInt(dm[1])*60 + parseInt(dm[2]);
+  } else {
+    const parts0 = dateM[2].split(':'), parts1 = dateM[3].split(':');
+    let start = parseInt(parts0[0])*60+parseInt(parts0[1]);
+    let end   = parseInt(parts1[0])*60+parseInt(parts1[1]);
+    if (end < start) end += 1440;
+    durationMin = end - start;
+  }
+
+  const skipRe = /^(träningstid|set:|reps:|medelvikt:|volym:|#|\d{4}-\d{2}-\d{2})/i;
+  const exercises = [];
+
+  for (const line of lines.slice(1)) {
+    if (skipRe.test(line)) continue;
+    const cleaned = line.replace(/"[^"]*"/g,'').replace(/\s+/g,' ').trim();
+    const ci = cleaned.indexOf(':');
+    if (ci === -1) continue;
+    const name = cleaned.slice(0,ci).trim();
+    const setsStr = cleaned.slice(ci+1).trim();
+    const sets = [];
+    for (const s of setsStr.split(',')) {
+      const m = s.trim().match(/^(\d+)\s*x\s*([\d,.]+)(?:\s*\+\s*([\d,.]+))?(\s*\(PB!\))?/i);
+      if (!m) continue;
+      const reps = parseInt(m[1]);
+      if (reps === 0) continue;
+      const w = parseFloat(m[2].replace(',','.')) + (m[3] ? parseFloat(m[3].replace(',','.')) : 0);
+      sets.push({ reps, weight: w, pb: !!m[4] });
+    }
+    if (sets.length) exercises.push({ name, sets });
+  }
+
+  if (!exercises.length) return null;
+  const totalVolume = exercises.reduce((s,ex) =>
+    s + ex.sets.reduce((a,set) => a+set.reps*set.weight, 0), 0);
+  return { date, durationMin, exercises, totalVolume: Math.round(totalVolume) };
+}
+
+// Epley 1RM — capped at 10 reps
+function epley(reps, weight) {
+  if (reps < 1 || reps > 10) return null;
+  if (reps === 1) return weight;
+  return Math.round(weight * (1 + reps/30));
+}
+
+function best1RM(sets) {
+  let best = 0;
+  for (const s of sets) { const v = epley(s.reps, s.weight); if (v && v > best) best = v; }
+  return best || null;
+}
+
+function bestSetVol(sets) {
+  return Math.round(Math.max(...sets.map(s => s.reps * s.weight)));
+}
+
+// ── ACTIONS ─────────────────────────────────────────────────────────────────
+function parseAndAdd() {
+  const raw = document.getElementById('importText').value.trim();
+  if (!raw) return;
+  const blocks = raw.split(/\n(?=\d{4}-\d{2}-\d{2})/).filter(b => b.trim());
+  let added = 0; const errs = [];
+  for (const b of blocks) {
+    const w = parseWorkout(b);
+    if (!w) { errs.push('Could not parse block — check format.'); continue; }
+    if (workouts.find(x => x.date===w.date && x.exercises[0]?.name===w.exercises[0]?.name)) {
+      errs.push(`${w.date} already exists — skipped.`); continue;
+    }
+    workouts.push(w); added++;
+  }
+  workouts.sort((a,b) => a.date.localeCompare(b.date));
+  save();
+  showError(errs.join(' | '));
+  if (added) {
+    document.getElementById('importText').value = '';
+    document.getElementById('importBody').classList.remove('open');
+    document.getElementById('importToggle').classList.remove('open');
+  }
+  renderAll();
+}
+
+function save() { localStorage.setItem('sl_v2', JSON.stringify(workouts)); }
+
+function showError(msg) {
+  const a = document.getElementById('errorArea');
+  if (!msg) { a.innerHTML=''; return; }
+  a.innerHTML = `<div class="error-msg">${msg}</div>`;
+  setTimeout(() => a.innerHTML='', 6000);
+}
+
+function toggleImport() {
+  document.getElementById('importBody').classList.toggle('open');
+  document.getElementById('importToggle').classList.toggle('open');
+}
+
+// ── SYNC FROM FILE ──────────────────────────────────────────────────────────
+function syncFromFile() {
+  document.getElementById('fileInput').click();
+}
+
+function handleFileLoad(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      // Accept either array of workouts or { workouts: [...] }
+      const incoming = Array.isArray(data) ? data : (data.workouts || []);
+      if (!incoming.length) throw new Error('No workouts found in file');
+
+      let added = 0;
+      for (const w of incoming) {
+        // Normalise — Shortcut sends Health data in a structured format
+        const normalised = normaliseHealthWorkout(w);
+        if (!normalised) continue;
+        const dup = workouts.find(x =>
+          x.date === normalised.date &&
+          x.exercises[0]?.name === normalised.exercises[0]?.name
+        );
+        if (!dup) { workouts.push(normalised); added++; }
+      }
+      workouts.sort((a,b) => a.date.localeCompare(b.date));
+      save();
+      renderAll();
+      const now = new Date().toLocaleTimeString('sv-SE', {hour:'2-digit', minute:'2-digit'});
+      setSyncStatus(`Synced ${added} new · ${now}`, 'ok');
+    } catch(err) {
+      setSyncStatus('Error: ' + err.message, 'err');
+    }
+    // Reset file input so same file can be reloaded
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function setSyncStatus(msg, cls='') {
+  const el = document.getElementById('syncStatus');
+  el.textContent = msg;
+  el.className = 'sync-status ' + cls;
+}
+
+// Normalise a workout object coming from the Shortcut's JSON
+// Expected shape per workout:
+// {
+//   date: "2026-04-24",          // ISO date string
+//   durationMin: 42,             // number
+//   exercises: [
+//     {
+//       name: "Chins",
+//       sets: [
+//         { reps: 5, weight: 97 },
+//         ...
+//       ]
+//     }
+//   ]
+// }
+// If a workout was already parsed by parseWorkout (text paste), it already has this shape.
+function normaliseHealthWorkout(w) {
+  // Already in our internal format
+  if (w.date && Array.isArray(w.exercises) && w.exercises.length) {
+    // Recompute totalVolume in case it's missing
+    if (!w.totalVolume) {
+      w.totalVolume = Math.round(w.exercises.reduce((s,ex) =>
+        s + ex.sets.reduce((a,set) => a + set.reps * set.weight, 0), 0));
+    }
+    return w;
+  }
+  return null;
+}
+
+// ── TIMEFRAME ────────────────────────────────────────────────────────────────
+function setTf(tf) {
+  activeTf = tf;
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.toggle('active', b.dataset.tf===tf));
+  renderAll();
+}
+
+function filteredWorkouts() {
+  if (activeTf==='all') return workouts;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - parseInt(activeTf));
+  const cut = cutoff.toISOString().slice(0,10);
+  return workouts.filter(w => w.date >= cut);
+}
+
+// ── CHART HELPERS ────────────────────────────────────────────────────────────
+Chart.defaults.font.family = 'Space Mono';
+const baseOpts = {
+  responsive: true, maintainAspectRatio: false,
+  animation: { duration: 500, easing: 'easeOutQuart' },
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: '#0a1a30', borderColor: '#1c2e4a', borderWidth: 1,
+      titleColor: '#00d4ff', bodyColor: '#c8ddf8', padding: 8,
+      titleFont: { size: 10 }, bodyFont: { size: 10 }
+    }
+  },
+  scales: {
+    x: { grid:{color:'#0e1e34'}, ticks:{color:'#304560',font:{size:8},maxRotation:45} },
+    y: { grid:{color:'#0e1e34'}, ticks:{color:'#304560',font:{size:8}} }
+  }
+};
+
+function deepMerge(a,b) {
+  const out = Object.assign({},a);
+  for (const k of Object.keys(b)) {
+    if (b[k] && typeof b[k]==='object' && !Array.isArray(b[k])) out[k] = deepMerge(a[k]||{}, b[k]);
+    else out[k] = b[k];
+  }
+  return out;
+}
+
+function mkChart(id, type, labels, datasets, extra={}) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+  const ctx = document.getElementById(id)?.getContext('2d');
+  if (!ctx) return;
+  charts[id] = new Chart(ctx, {
+    type, data:{labels,datasets},
+    options: deepMerge(JSON.parse(JSON.stringify(baseOpts)), extra)
+  });
+}
+
+const shortDate = d => d.slice(5);
+
+function barDs(data, color) {
+  return [{ data, backgroundColor:color+'44', borderColor:color, borderWidth:1, borderRadius:3 }];
+}
+function lineDs(data, color) {
+  return [{ data, borderColor:color, backgroundColor:color+'18',
+    pointBackgroundColor:color, pointRadius:3.5, tension:0.35, fill:true }];
+}
+
+// ── RENDER ALL ───────────────────────────────────────────────────────────────
+function renderAll() {
+  const fw = filteredWorkouts();
+  updateStats(fw);
+  renderOverview(fw);
+  populateExSelect();
+  renderExPanel();
+  renderHistory(fw);
+  const totalMins = workouts.reduce((s,w) => s+w.durationMin, 0);
+  document.getElementById('hdrHours').textContent = (totalMins/60).toFixed(1)+'h';
+}
+
+function fmtVol(v) { return v>=1000 ? (v/1000).toFixed(1)+'k' : v; }
+
+function updateStats(fw) {
+  const totalVol  = fw.reduce((s,w)=>s+w.totalVolume,0);
+  const allEx     = new Set(workouts.flatMap(w=>w.exercises.map(e=>e.name)));
+  const totalMins = workouts.reduce((s,w)=>s+w.durationMin,0);
+  document.getElementById('sWorkouts').textContent = fw.length;
+  document.getElementById('sVolume').textContent   = fmtVol(totalVol);
+  document.getElementById('sPRs').textContent      = allEx.size;
+  document.getElementById('sHours').textContent    = (totalMins/60).toFixed(1);
+}
+
+function buildPRMap() {
+  const map = {};
+  for (const w of workouts) {
+    for (const ex of w.exercises) {
+      const e1rm = best1RM(ex.sets);
+      if (!map[ex.name]) map[ex.name] = {
+        est1RM:0, est1RMDate:'',
+        actual1RM:0, actual1RMDate:'',
+        heaviestWeight:0, heaviestWeightReps:0, heaviestWeightDate:'',
+      };
+      const m = map[ex.name];
+      if (e1rm && e1rm > m.est1RM) { m.est1RM = e1rm; m.est1RMDate = w.date; }
+      for (const s of ex.sets) {
+        if (s.reps === 1 && s.weight > m.actual1RM) { m.actual1RM = s.weight; m.actual1RMDate = w.date; }
+        if (s.weight > m.heaviestWeight) {
+          m.heaviestWeight = s.weight;
+          m.heaviestWeightReps = s.reps;
+          m.heaviestWeightDate = w.date;
+        }
+      }
+    }
+  }
+  return map;
+}
+
+// ── OVERVIEW ─────────────────────────────────────────────────────────────────
+function renderOverview(fw) {
+  ['chartVolume','chartHours'].forEach(id => {
+    if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+  });
+  if (!fw.length) return;
+  const labels = fw.map(w=>shortDate(w.date));
+  const volType = chartTypePref['chartVolume'];
+  const volDs   = volType === 'bar'
+    ? barDs(fw.map(w=>w.totalVolume), '#1a8cff')
+    : lineDs(fw.map(w=>w.totalVolume), '#1a8cff');
+  mkChart('chartVolume', volType, labels, volDs);
+
+  const hrs = fw.map(w=>+(w.durationMin/60).toFixed(2));
+  const hrsType = chartTypePref['chartHours'];
+  const hrsDs   = hrsType === 'bar'
+    ? barDs(hrs, '#00e5a0')
+    : lineDs(hrs, '#00e5a0');
+  mkChart('chartHours', hrsType, labels, hrsDs,
+    {scales:{y:{ticks:{callback:v=>v+'h'}}}});
+
+  // Cumulative hours — always a line, uses all workouts up to each date in filtered set
+  if (charts['chartHoursCumulative']) { charts['chartHoursCumulative'].destroy(); delete charts['chartHoursCumulative']; }
+  let cumSum = 0;
+  const cumHrs = fw.map(w => { cumSum += w.durationMin/60; return +cumSum.toFixed(2); });
+  mkChart('chartHoursCumulative', 'line', labels, lineDs(cumHrs, '#ffc947'),
+    {scales:{y:{ticks:{callback:v=>v+'h'}}}});
+}
+
+// ── EXERCISE PANEL ────────────────────────────────────────────────────────────
+function populateExSelect() {
+  const sel = document.getElementById('exerciseSelect');
+  const cur = sel.value;
+  const names = [...new Set(workouts.flatMap(w=>w.exercises.map(e=>e.name)))].sort();
+  sel.innerHTML = '<option value="">— Select exercise —</option>' +
+    names.map(n=>`<option value="${n}"${n===cur?' selected':''}>${n}</option>`).join('');
+}
+
+function renderExPanel() {
+  const name = document.getElementById('exerciseSelect').value;
+  const container = document.getElementById('exCharts');
+
+  if (!name) {
+    container.innerHTML = `<div class="empty">
+      <div class="icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="7" width="12" height="2" rx="1" fill="currentColor"/><rect x="5" y="4" width="2" height="8" rx="1" fill="currentColor"/><rect x="9" y="4" width="2" height="8" rx="1" fill="currentColor"/></svg></div>
+      <p>Select an exercise<br>to see its progress</p>
+    </div>`;
+    return;
+  }
+
+  const fw = filteredWorkouts();
+  const points = fw
+    .filter(w => w.exercises.find(e=>e.name===name))
+    .map(w => {
+      const ex = w.exercises.find(e=>e.name===name);
+      return {
+        date: w.date,
+        vol:  Math.round(ex.sets.reduce((s,set)=>s+set.reps*set.weight,0)),
+        e1rm: best1RM(ex.sets),
+        bestSet: bestSetVol(ex.sets),
+      };
+    });
+
+  if (!points.length) {
+    container.innerHTML = `<div class="empty"><p>No data for "${name}"<br>in selected timeframe</p></div>`;
+    return;
+  }
+
+  // All-time data for this exercise (ignore timeframe)
+  const allPoints = workouts
+    .filter(w=>w.exercises.find(e=>e.name===name))
+    .map(w => {
+      const ex = w.exercises.find(e=>e.name===name);
+      const heaviest = ex.sets.reduce((b,s) => s.weight > b.weight ? s : b, {weight:0,reps:0});
+      return { date:w.date, sets:ex.sets, heaviest };
+    });
+
+  // Heaviest weight used in any set (all-time) — with reps for display
+  const heaviestEntry = allPoints.reduce((best,p) => {
+    return p.heaviest.weight > best.weight
+      ? { weight:p.heaviest.weight, reps:p.heaviest.reps, date:p.date }
+      : best;
+  }, { weight:0, reps:0, date:'' });
+
+  // Actual 1RM: heaviest single rep logged (all-time)
+  const actual1RMEntry = allPoints.reduce((best,p) => {
+    for (const s of p.sets) {
+      if (s.reps===1 && s.weight > best.weight) return { weight:s.weight, date:p.date };
+    }
+    return best;
+  }, { weight:0, date:'' });
+
+  // Running PR: all-time max heaviest weight (step line, only ever goes up)
+  let runningHeavy = 0;
+  const runningPR      = allPoints.map(p => {
+    if (p.heaviest.weight > runningHeavy) runningHeavy = p.heaviest.weight;
+    return runningHeavy || null;
+  });
+  // Store per-point reps for tooltip
+  const runningPRReps  = allPoints.map(p => p.heaviest.reps);
+
+  // PR leaderboard — all exercises, sorted by est 1RM
+  const prMap = buildPRMap();
+  const prRows = Object.entries(prMap)
+    .sort((a,b) => (b[1].est1RM||0) - (a[1].est1RM||0))
+    .map(([n,r]) => {
+      const e1rmCell = r.est1RM
+        ? `<div class="pr-val c-cyan">${r.est1RM}<span style="font-size:.6rem"> kg</span></div>`
+        : `<div style="color:var(--muted)">—</div>`;
+      // Actual PR: prefer true 1RM, fall back to heaviest weight
+      const actualStr = r.actual1RM
+        ? `1&times;${r.actual1RM} kg`
+        : `${r.heaviestWeightReps}&times;${r.heaviestWeight} kg`;
+      return `<tr>
+        <td><div class="pr-name">${n}</div><div class="pr-date-small">${r.est1RMDate||r.heaviestWeightDate}</div></td>
+        <td>${e1rmCell}</td>
+        <td><div class="pr-val c-gold">${actualStr}</div></td>
+      </tr>`;
+    }).join('');
+
+  // Highlight: show both actual 1RM and heaviest weight
+  const actual1RMStr = actual1RMEntry.weight
+    ? `${actual1RMEntry.weight} kg <span class="pr-highlight-unit" style="font-size:1rem">× 1</span>`
+    : '—';
+  const heaviestStr = heaviestEntry.weight
+    ? `${heaviestEntry.weight} kg <span class="pr-highlight-unit" style="font-size:1rem">× ${heaviestEntry.reps}</span>`
+    : '—';
+
+  container.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div class="pr-highlight">
+        <div class="pr-highlight-lbl">Actual 1RM</div>
+        <div class="pr-highlight-val" style="font-size:2.2rem">${actual1RMStr}</div>
+        ${actual1RMEntry.date ? `<div class="pr-highlight-date">${actual1RMEntry.date}</div>` : '<div class="pr-highlight-date" style="color:var(--muted)">no 1-rep sets logged</div>'}
+      </div>
+      <div class="pr-highlight">
+        <div class="pr-highlight-lbl">Heaviest Weight</div>
+        <div class="pr-highlight-val" style="font-size:2.2rem">${heaviestStr}</div>
+        ${heaviestEntry.date ? `<div class="pr-highlight-date">${heaviestEntry.date}</div>` : ''}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span>Est. 1-Rep Max Progress</span><strong>${name}</strong></div>
+      <canvas id="ex1rmChart" class="canvas-tall"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span>Running PR</span><strong>Heaviest Weight Over Time</strong></div>
+      <canvas id="exPRChart" class="canvas-tall"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>Session Volume</span><strong>${name}</strong>
+        <div class="chart-toggle">
+          <button class="ct-btn ${chartTypePref['exVolChart']==='bar'?'active':''}" data-toggle="exVolChart" data-type="bar" onclick="toggleChartType('exVolChart')">Bar</button>
+          <button class="ct-btn ${chartTypePref['exVolChart']==='line'?'active':''}" data-toggle="exVolChart" data-type="line" onclick="toggleChartType('exVolChart')">Line</button>
+        </div>
+      </div>
+      <canvas id="exVolChart"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span>Best Set Volume (reps &times; kg)</span><strong>${name}</strong></div>
+      <canvas id="exBestChart"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span>All Exercises &mdash; All Time</span><strong>PR Leaderboard</strong></div>
+      <table class="pr-table">
+        <thead><tr><th>Exercise</th><th>Est. 1RM</th><th>Actual PR</th></tr></thead>
+        <tbody>${prRows}</tbody>
+      </table>
+    </div>`;
+
+  const labels    = points.map(p=>shortDate(p.date));
+  const allLabels = allPoints.map(p=>shortDate(p.date));
+
+  mkChart('ex1rmChart',  'line', labels,    lineDs(points.map(p=>p.e1rm), '#00d4ff'));
+
+  // Running PR — heaviest weight, stepped, tooltip shows "Xkg (Yreps)"
+  mkChart('exPRChart', 'line', allLabels, lineDs(runningPR, '#ffc947'), {
+    stepped: true,
+    plugins: { tooltip: { callbacks: { label: ctx => {
+      const reps = runningPRReps[ctx.dataIndex];
+      return ` ${ctx.parsed.y} kg (${reps} reps)`;
+    }}}}
+  });
+
+  const exVolType = chartTypePref['exVolChart'];
+  const exVolDs   = exVolType === 'bar'
+    ? barDs(points.map(p=>p.vol), '#1a8cff')
+    : lineDs(points.map(p=>p.vol), '#1a8cff');
+  mkChart('exVolChart', exVolType, labels, exVolDs);
+
+  // Best set — tooltip shows "Xreps × Ykg" not the multiplied value
+  const bestSetRaw = points.map(p => {
+    const ex = filteredWorkouts().find(w=>w.date===p.date)?.exercises.find(e=>e.name===name);
+    if (!ex) return {reps:0,weight:0};
+    return ex.sets.reduce((b,s) => s.reps*s.weight > b.reps*b.weight ? s : b, {reps:0,weight:0});
+  });
+  mkChart('exBestChart', 'line', labels, lineDs(points.map(p=>p.bestSet), '#00e5a0'), {
+    plugins: { tooltip: { callbacks: { label: ctx => {
+      const s = bestSetRaw[ctx.dataIndex];
+      return ` ${s.reps} reps × ${s.weight} kg`;
+    }}}}
+  });
+}
+
+// ── HISTORY ──────────────────────────────────────────────────────────────────
+function renderHistory(fw) {
+  const container = document.getElementById('historyList');
+  if (!fw.length) {
+    container.innerHTML = `<div class="empty">
+      <div class="icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="2" width="10" height="12" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/><line x1="5" y1="5.5" x2="11" y2="5.5" stroke="currentColor" stroke-width="1"/><line x1="5" y1="8" x2="11" y2="8" stroke="currentColor" stroke-width="1"/><line x1="5" y1="10.5" x2="9" y2="10.5" stroke="currentColor" stroke-width="1"/></svg></div>
+      <p>No workouts in this timeframe.</p>
+    </div>`;
+    return;
+  }
+  container.innerHTML = [...fw].reverse().map((w,i) => {
+    const rows = w.exercises.map(ex => {
+      const hasPB = ex.sets.some(s=>s.pb);
+      const txt   = ex.sets.map(s=>`${s.reps}×${s.weight}kg`).join(', ');
+      return `<div class="ex-row">
+        <div class="ex-name">${ex.name}${hasPB?'<span class="badge-pr">PR</span>':''}</div>
+        <div class="ex-sets-text">${txt}</div>
+      </div>`;
+    }).join('');
+    const dur = w.durationMin ? (w.durationMin/60).toFixed(1)+'h · ' : '';
+    return `<div class="workout-card" style="animation-delay:${i*0.04}s">
+      <div class="wk-header">
+        <div class="wk-date">${w.date}</div>
+        <div class="wk-meta">${dur}${w.totalVolume.toLocaleString()} kg</div>
+      </div>
+      ${rows}
+    </div>`;
+  }).join('');
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function switchTab(name) {
+  const names = ['overview','exercise','history'];
+  document.querySelectorAll('.tab').forEach((t,i) =>
+    t.classList.toggle('active', names[i]===name));
+  document.querySelectorAll('.panel').forEach(p =>
+    p.classList.toggle('active', p.id==='panel-'+name));
+  if (name==='exercise') renderExPanel();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+if (!workouts.length) {
+  document.getElementById('importBody').classList.add('open');
+  document.getElementById('importToggle').classList.add('open');
+}
+renderAll();
+</script>
+
+
+</body></html>
